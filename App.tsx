@@ -31,8 +31,11 @@ import {
   CloudCheck, 
   CloudUpload,
   Save,
-  TriangleAlert
+  TriangleAlert,
+  Info
 } from 'lucide-react';
+
+const APP_VERSION = "1.0.2"; // Control de versión manual para el usuario
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>('DASHBOARD');
@@ -62,7 +65,6 @@ const App: React.FC = () => {
   const [squads, setSquads] = useState<MatchSquad[]>(() => JSON.parse(localStorage.getItem('squads') || '[]'));
   const [users, setUsers] = useState<User[]>(() => JSON.parse(localStorage.getItem('users') || '[{"id":"1","username":"admin","role":"ADMIN"}]'));
 
-  // Manejo de cambios y flag de sincronización
   const markChanges = () => setHasUnsavedChanges(true);
 
   useEffect(() => { localStorage.setItem('schoolSettings', JSON.stringify(schoolSettings)); }, [schoolSettings]);
@@ -73,7 +75,6 @@ const App: React.FC = () => {
   useEffect(() => { localStorage.setItem('squads', JSON.stringify(squads)); markChanges(); }, [squads]);
   useEffect(() => { localStorage.setItem('users', JSON.stringify(users)); markChanges(); }, [users]);
 
-  // Bloqueo de cierre de pestaña si hay cambios
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
@@ -85,16 +86,11 @@ const App: React.FC = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
-  // Función principal de Sincronización
   const handlePushToCloud = async () => {
     setIsSyncing(true);
-    // Simulación de delay de API
     await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Aquí se integraría el SDK de Google Drive real
     const allData = { schoolSettings, students, teachers, payments, cashFlow, squads, users };
     console.log("Subiendo respaldo a Drive:", allData);
-    
     setSchoolSettings({ ...schoolSettings, lastCloudSync: new Date().toISOString() });
     setHasUnsavedChanges(false);
     setIsSyncing(false);
@@ -181,7 +177,7 @@ const App: React.FC = () => {
           <button 
             onClick={() => {
               setCurrentUser(users[0]);
-              setHasUnsavedChanges(false); // Reiniciar flag al entrar
+              setHasUnsavedChanges(false);
             }}
             className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition shadow-lg"
           >
@@ -194,7 +190,6 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex bg-slate-50 overflow-hidden relative">
-      {/* MODAL DE CIERRE CON RESPALDO */}
       {showExitPrompt && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 animate-in fade-in duration-300">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-300">
@@ -206,7 +201,6 @@ const App: React.FC = () => {
               <p className="text-slate-500 text-sm mb-8 leading-relaxed">
                 Has realizado cambios que aún no se han guardado en **Google Drive**. ¿Deseas subir una copia de seguridad antes de cerrar la sesión?
               </p>
-              
               <div className="space-y-3">
                 <button 
                   onClick={handlePushToCloud}
@@ -236,7 +230,6 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* NOTIFICACIÓN DE DATOS NUEVOS EN NUBE */}
       {cloudUpdateAvailable && (
         <div className="fixed bottom-6 right-6 z-[100] w-80 bg-slate-900 text-white shadow-2xl rounded-2xl p-5 border border-slate-700 animate-slide-in">
           <div className="flex gap-4">
@@ -302,6 +295,12 @@ const App: React.FC = () => {
           </nav>
 
           <div className="mt-auto pt-6 border-t border-slate-800">
+            {/* INDICADOR DE VERSIÓN */}
+            <div className="mb-4 px-2 py-1 bg-slate-800/50 rounded-lg flex items-center justify-between">
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Sistema</span>
+              <span className="text-[10px] font-bold text-blue-400 bg-blue-400/10 px-1.5 rounded">v{APP_VERSION}</span>
+            </div>
+
             <div className="flex items-center gap-3 mb-4">
               <div className="bg-slate-800 p-2 rounded-full">
                 <UserIcon className="w-5 h-5 text-slate-400" />
