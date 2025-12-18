@@ -19,7 +19,20 @@ import MatchManager from './components/MatchManager';
 import TrainingManager from './components/TrainingManager';
 import ReportManager from './components/ReportManager';
 import UserSettings from './components/UserSettings';
-import { LogOut, User as UserIcon, Menu, X, Trophy, CloudLightning, RefreshCw, AlertCircle, CloudCheck, CloudUpload } from 'lucide-react';
+import { 
+  LogOut, 
+  User as UserIcon, 
+  Menu, 
+  X, 
+  Trophy, 
+  CloudLightning, 
+  RefreshCw, 
+  AlertCircle, 
+  CloudCheck, 
+  CloudUpload,
+  Save,
+  TriangleAlert
+} from 'lucide-react';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>('DASHBOARD');
@@ -27,8 +40,10 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [cloudUpdateAvailable, setCloudUpdateAvailable] = useState<any>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showExitPrompt, setShowExitPrompt] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  // Estados con carga inicial
+  // Estados con carga inicial desde LocalStorage
   const [schoolSettings, setSchoolSettings] = useState<SchoolSettings>(() => {
     const saved = localStorage.getItem('schoolSettings');
     return saved ? JSON.parse(saved) : {
@@ -40,71 +55,68 @@ const App: React.FC = () => {
     };
   });
 
-  const [students, setStudents] = useState<Student[]>(() => {
-    const saved = localStorage.getItem('students');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [students, setStudents] = useState<Student[]>(() => JSON.parse(localStorage.getItem('students') || '[]'));
+  const [teachers, setTeachers] = useState<Teacher[]>(() => JSON.parse(localStorage.getItem('teachers') || '[]'));
+  const [payments, setPayments] = useState<Payment[]>(() => JSON.parse(localStorage.getItem('payments') || '[]'));
+  const [cashFlow, setCashFlow] = useState<CashTransaction[]>(() => JSON.parse(localStorage.getItem('cashFlow') || '[]'));
+  const [squads, setSquads] = useState<MatchSquad[]>(() => JSON.parse(localStorage.getItem('squads') || '[]'));
+  const [users, setUsers] = useState<User[]>(() => JSON.parse(localStorage.getItem('users') || '[{"id":"1","username":"admin","role":"ADMIN"}]'));
 
-  const [teachers, setTeachers] = useState<Teacher[]>(() => {
-    const saved = localStorage.getItem('teachers');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [payments, setPayments] = useState<Payment[]>(() => {
-    const saved = localStorage.getItem('payments');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [cashFlow, setCashFlow] = useState<CashTransaction[]>(() => {
-    const saved = localStorage.getItem('cashFlow');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [squads, setSquads] = useState<MatchSquad[]>(() => {
-    const saved = localStorage.getItem('squads');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [users, setUsers] = useState<User[]>(() => {
-    const saved = localStorage.getItem('users');
-    return saved ? JSON.parse(saved) : [{ id: '1', username: 'admin', role: 'ADMIN' }];
-  });
-
-  // Guardado local y marcado de cambios pendientes
-  const updateLocalAndCloudFlag = (key: string, data: any) => {
-    localStorage.setItem(key, JSON.stringify(data));
-    setHasUnsavedChanges(true);
-  };
+  // Manejo de cambios y flag de sincronización
+  const markChanges = () => setHasUnsavedChanges(true);
 
   useEffect(() => { localStorage.setItem('schoolSettings', JSON.stringify(schoolSettings)); }, [schoolSettings]);
-  useEffect(() => { updateLocalAndCloudFlag('students', students); }, [students]);
-  useEffect(() => { updateLocalAndCloudFlag('teachers', teachers); }, [teachers]);
-  useEffect(() => { updateLocalAndCloudFlag('payments', payments); }, [payments]);
-  useEffect(() => { updateLocalAndCloudFlag('cashFlow', cashFlow); }, [cashFlow]);
-  useEffect(() => { updateLocalAndCloudFlag('squads', squads); }, [squads]);
-  useEffect(() => { updateLocalAndCloudFlag('users', users); }, [users]);
+  useEffect(() => { localStorage.setItem('students', JSON.stringify(students)); markChanges(); }, [students]);
+  useEffect(() => { localStorage.setItem('teachers', JSON.stringify(teachers)); markChanges(); }, [teachers]);
+  useEffect(() => { localStorage.setItem('payments', JSON.stringify(payments)); markChanges(); }, [payments]);
+  useEffect(() => { localStorage.setItem('cashFlow', JSON.stringify(cashFlow)); markChanges(); }, [cashFlow]);
+  useEffect(() => { localStorage.setItem('squads', JSON.stringify(squads)); markChanges(); }, [squads]);
+  useEffect(() => { localStorage.setItem('users', JSON.stringify(users)); markChanges(); }, [users]);
 
-  // Simulación de guardado en la nube
-  const handlePushToCloud = () => {
-    if (!schoolSettings.googleDriveLinked) return;
-    alert("Sincronizando con Google Drive...");
+  // Bloqueo de cierre de pestaña si hay cambios
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = "Tienes cambios sin guardar en la nube. ¿Estás seguro de que quieres salir?";
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  // Función principal de Sincronización
+  const handlePushToCloud = async () => {
+    setIsSyncing(true);
+    // Simulación de delay de API
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Aquí se integraría el SDK de Google Drive real
+    const allData = { schoolSettings, students, teachers, payments, cashFlow, squads, users };
+    console.log("Subiendo respaldo a Drive:", allData);
+    
     setSchoolSettings({ ...schoolSettings, lastCloudSync: new Date().toISOString() });
     setHasUnsavedChanges(false);
+    setIsSyncing(false);
+    setShowExitPrompt(false);
+    return true;
+  };
+
+  const handleLogoutAttempt = () => {
+    if (hasUnsavedChanges && schoolSettings.googleDriveLinked) {
+      setShowExitPrompt(true);
+    } else {
+      setCurrentUser(null);
+    }
   };
 
   const checkCloudUpdates = useCallback(() => {
     if (!schoolSettings.googleDriveLinked) return;
-    
-    // Simulación: Detectar si hay un archivo más nuevo en la nube (ej: subido por otro usuario)
     const mockCheck = () => {
       const lastLocalSync = new Date(schoolSettings.lastCloudSync || 0).getTime();
-      const mockCloudTime = lastLocalSync + 5000; // Simulamos que hay algo nuevo
-
+      const mockCloudTime = lastLocalSync + 5000; 
       if (mockCloudTime > lastLocalSync && !hasUnsavedChanges) {
-        setCloudUpdateAvailable({
-          timestamp: new Date(mockCloudTime).toISOString(),
-          user: 'Secretaría'
-        });
+        setCloudUpdateAvailable({ timestamp: new Date(mockCloudTime).toISOString() });
       }
     };
     setTimeout(mockCheck, 3000);
@@ -112,7 +124,6 @@ const App: React.FC = () => {
 
   useEffect(() => {
     checkCloudUpdates();
-    // Re-revisar cuando el usuario vuelve a la pestaña
     window.addEventListener('focus', checkCloudUpdates);
     return () => window.removeEventListener('focus', checkCloudUpdates);
   }, [checkCloudUpdates]);
@@ -147,7 +158,7 @@ const App: React.FC = () => {
             currentUser={currentUser} 
             schoolSettings={schoolSettings} 
             setSchoolSettings={setSchoolSettings}
-            allData={{ schoolSettings, students, teachers, payments, cashFlow, squads, users }}
+            allData={commonProps}
             onImportData={handleImportAllData}
           />
         );
@@ -168,7 +179,10 @@ const App: React.FC = () => {
           )}
           <h1 className="text-2xl font-bold mb-6 text-slate-800">{schoolSettings.name}</h1>
           <button 
-            onClick={() => setCurrentUser(users[0])}
+            onClick={() => {
+              setCurrentUser(users[0]);
+              setHasUnsavedChanges(false); // Reiniciar flag al entrar
+            }}
             className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition shadow-lg"
           >
             Entrar al Sistema
@@ -180,7 +194,49 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex bg-slate-50 overflow-hidden relative">
-      {/* NOTIFICACIÓN FLOTANTE MEJORADA */}
+      {/* MODAL DE CIERRE CON RESPALDO */}
+      {showExitPrompt && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-8 text-center">
+              <div className="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <TriangleAlert className="w-10 h-10" />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-2">¡Espera un momento!</h3>
+              <p className="text-slate-500 text-sm mb-8 leading-relaxed">
+                Has realizado cambios que aún no se han guardado en **Google Drive**. ¿Deseas subir una copia de seguridad antes de cerrar la sesión?
+              </p>
+              
+              <div className="space-y-3">
+                <button 
+                  onClick={handlePushToCloud}
+                  disabled={isSyncing}
+                  className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition flex items-center justify-center gap-3 shadow-xl shadow-blue-100 disabled:opacity-50"
+                >
+                  {isSyncing ? <RefreshCw className="w-5 h-5 animate-spin" /> : <CloudUpload className="w-5 h-5" />}
+                  RESPALDAR Y SALIR
+                </button>
+                <button 
+                  onClick={() => { setShowExitPrompt(false); setCurrentUser(null); }}
+                  disabled={isSyncing}
+                  className="w-full bg-slate-100 text-slate-500 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-slate-200 transition"
+                >
+                  SALIR SIN RESPALDAR
+                </button>
+                <button 
+                  onClick={() => setShowExitPrompt(false)}
+                  disabled={isSyncing}
+                  className="w-full text-slate-400 py-2 text-xs font-bold hover:text-slate-600 transition"
+                >
+                  CANCELAR
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* NOTIFICACIÓN DE DATOS NUEVOS EN NUBE */}
       {cloudUpdateAvailable && (
         <div className="fixed bottom-6 right-6 z-[100] w-80 bg-slate-900 text-white shadow-2xl rounded-2xl p-5 border border-slate-700 animate-slide-in">
           <div className="flex gap-4">
@@ -188,8 +244,8 @@ const App: React.FC = () => {
               <CloudLightning className="w-6 h-6 text-white animate-pulse" />
             </div>
             <div className="flex-1">
-              <h4 className="text-sm font-black uppercase tracking-widest text-blue-400">Nuevos Datos</h4>
-              <p className="text-[10px] text-slate-400 mb-4 leading-relaxed">Se detectaron cambios recientes subidos por otro usuario. ¿Deseas actualizar tu sesión actual?</p>
+              <h4 className="text-sm font-black uppercase tracking-widest text-blue-400">Datos en Nube</h4>
+              <p className="text-[10px] text-slate-400 mb-4 leading-relaxed">Se detectaron cambios recientes en el Drive. ¿Deseas actualizar tu sesión local?</p>
               <div className="flex gap-2">
                 <button 
                   onClick={() => handleImportAllData({})} 
@@ -256,7 +312,7 @@ const App: React.FC = () => {
               </div>
             </div>
             <button 
-              onClick={() => setCurrentUser(null)}
+              onClick={handleLogoutAttempt}
               className="w-full flex items-center gap-2 text-slate-500 hover:text-red-400 text-xs transition font-bold"
             >
               <LogOut className="w-4 h-4" /> CERRAR SESIÓN
@@ -285,13 +341,15 @@ const App: React.FC = () => {
                  {hasUnsavedChanges ? (
                     <button 
                       onClick={handlePushToCloud}
+                      disabled={isSyncing}
                       className="flex items-center gap-2 text-amber-600 font-black text-[10px] bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200 hover:bg-amber-100 transition animate-pulse"
                     >
-                      <CloudUpload className="w-3 h-3" /> CAMBIOS PENDIENTES
+                      {isSyncing ? <RefreshCw className="w-3 h-3 animate-spin" /> : <CloudUpload className="w-3 h-3" />}
+                      SINCRONIZAR AHORA
                     </button>
                  ) : (
                     <div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
-                      <CloudCheck className="w-3 h-3" /> NUBE AL DÍA
+                      <CloudCheck className="w-3 h-3" /> DRIVE ACTUALIZADO
                     </div>
                  )}
                </div>
