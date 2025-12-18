@@ -1,0 +1,7 @@
+{
+  "name": "Copy of Academia Deportiva Pro-Manager",
+  "description": "Sistema integral de gestión para academias deportivas, incluyendo control de alumnos, docentes, nómina, mensualidades, caja menor y planificación de entrenamientos.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
