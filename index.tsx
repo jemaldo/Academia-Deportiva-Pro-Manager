@@ -3,6 +3,9 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 
+// Polyfill básico para evitar errores de 'process is not defined' en el navegador
+(window as any).process = (window as any).process || { env: { API_KEY: '' } };
+
 // Registrar Service Worker para PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

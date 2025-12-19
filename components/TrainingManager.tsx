@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { generateTrainingProgram } from '../services/geminiService';
-import { CATEGORIES } from '../constants';
+import { generateTrainingProgram } from '../services/geminiService.ts';
+import { CATEGORIES } from '../constants.tsx';
 import { ClipboardList, Sparkles, Loader2, Calendar, Clock, Target } from 'lucide-react';
 
 const TrainingManager: React.FC = () => {
@@ -68,7 +68,7 @@ const TrainingManager: React.FC = () => {
         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="flex justify-between items-center">
             <h4 className="text-lg font-bold text-slate-800">Programa Sugerido para {category}</h4>
-            <button className="text-blue-600 font-bold text-sm hover:underline">Imprimir Programa</button>
+            <button className="text-blue-600 font-bold text-sm hover:underline" onClick={() => window.print()}>Imprimir Programa</button>
           </div>
           
           <div className="grid grid-cols-1 gap-6">

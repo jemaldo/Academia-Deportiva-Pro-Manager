@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'pro-manager-v1.1'; // Incrementamos versión
+const CACHE_NAME = 'pro-manager-v1.2'; // Incrementamos versión para forzar refresco
 const urlsToCache = [
   '/',
   '/index.html',
@@ -7,7 +7,6 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
-  // Fuerza a que el nuevo SW tome el control inmediatamente
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -16,7 +15,6 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('activate', event => {
-  // Limpia cachés antiguos
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
@@ -32,10 +30,10 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
+  // Solo cacheamos archivos estáticos conocidos, dejamos que el resto pase a la red
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // Retorna desde caché o busca en la red
         return response || fetch(event.request);
       })
   );

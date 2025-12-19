@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { MatchSquad, Student, SquadPlayer } from '../types';
-import { CATEGORIES, POSITIONS } from '../constants';
+import { MatchSquad, Student, SquadPlayer } from '../types.ts';
+import { CATEGORIES, POSITIONS } from '../constants.tsx';
 import { Trophy, Calendar, Users, ClipboardCheck, Plus, Trash2 } from 'lucide-react';
 
 interface Props {
@@ -44,6 +44,7 @@ const MatchManager: React.FC<Props> = ({ squads, setSquads, students }) => {
     const finalSquad: MatchSquad = {
       ...currentSquad as MatchSquad,
       id: Date.now().toString(),
+      updatedAt: Date.now()
     };
     setSquads([...squads, finalSquad]);
     setShowSquadForm(false);

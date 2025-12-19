@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { CashTransaction } from '../types';
+import { CashTransaction } from '../types.ts';
 import { Plus, Search, TrendingUp, TrendingDown, RefreshCw, Printer, AlertTriangle } from 'lucide-react';
 
 interface Props {
@@ -19,7 +19,6 @@ const FinanceManager: React.FC<Props> = ({ cashFlow, setCashFlow }) => {
   const handleSaveTransaction = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    // Added updatedAt property to satisfy BaseEntity interface
     const newTx: CashTransaction = {
       id: Date.now().toString(),
       updatedAt: Date.now(),
