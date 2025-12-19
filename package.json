@@ -1,15 +1,12 @@
 
 {
   "name": "academia-deportiva-pro-manager",
-  "version": "1.0.0",
-  "description": "Sistema integral de gestión para academias deportivas",
-  "main": "index.tsx",
+  "version": "1.1.2",
+  "private": true,
   "scripts": {
-    "start": "serve ."
+    "start": "serve .",
+    "build": "echo 'No build needed for browser-transpiled version'"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "serve": "^14.2.4"
   }
