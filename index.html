@@ -10,6 +10,22 @@
     <link rel="manifest" href="./manifest.json">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/5351/5351486.png">
     <title>Academia Deportiva Pro-Manager</title>
+    
+    <!-- Polyfill de entorno crucial para evitar bloqueos en el hilo principal -->
+    <script>
+        // Definir process antes de que carguen los módulos ESM
+        window.process = { env: { API_KEY: "" } };
+        
+        // Manejador de errores para diagnóstico en producción (Vercel)
+        window.onerror = function(msg, url, line, col, error) {
+            console.error('Error de ejecución:', msg, '\nURL:', url, '\nLínea:', line);
+            if (msg.toLowerCase().includes('syntax error') || msg.toLowerCase().includes('unexpected token')) {
+                console.warn('SINTAXIS NO SOPORTADA: El navegador está recibiendo código TSX/JSX sin procesar. Verifique los MIME types en vercel.json.');
+            }
+            return false;
+        };
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -20,7 +36,6 @@
         }
         .print-only { display: none; }
         html, body { overflow-x: hidden; width: 100%; }
-        /* Animación para el Toast de Sincronización */
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
@@ -40,7 +55,6 @@
   }
 }
 </script>
-<!-- SDK de Google para Sincronización en la Nube -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js" async defer></script>
 </head>
