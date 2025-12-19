@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Student, Teacher, Payment, CashTransaction, SchoolSettings } from '../types';
+import { Student, Teacher, Payment, CashTransaction, SchoolSettings } from '../types.ts';
 import { Users, UserSquare2, DollarSign, Wallet, TrendingUp, TrendingDown, Trophy } from 'lucide-react';
 import { 
   BarChart, 

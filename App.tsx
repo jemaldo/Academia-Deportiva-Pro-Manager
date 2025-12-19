@@ -9,17 +9,17 @@ import {
   MatchSquad, 
   User,
   SchoolSettings 
-} from './types';
-import { NAV_ITEMS } from './constants';
-import Dashboard from './components/Dashboard';
-import StudentManager from './components/StudentManager';
-import TeacherManager from './components/TeacherManager';
-import FinanceManager from './components/FinanceManager';
-import MatchManager from './components/MatchManager';
-import TrainingManager from './components/TrainingManager';
-import ReportManager from './components/ReportManager';
-import UserSettings from './components/UserSettings';
-import { mergeDataLists, fetchDriveData, saveDriveData } from './services/cloudSyncService';
+} from './types.ts';
+import { NAV_ITEMS } from './constants.tsx';
+import Dashboard from './components/Dashboard.tsx';
+import StudentManager from './components/StudentManager.tsx';
+import TeacherManager from './components/TeacherManager.tsx';
+import FinanceManager from './components/FinanceManager.tsx';
+import MatchManager from './components/MatchManager.tsx';
+import TrainingManager from './components/TrainingManager.tsx';
+import ReportManager from './components/ReportManager.tsx';
+import UserSettings from './components/UserSettings.tsx';
+import { mergeDataLists, fetchDriveData, saveDriveData } from './services/cloudSyncService.ts';
 import { 
   LogOut, 
   User as UserIcon, 
@@ -37,35 +37,37 @@ import {
   CheckCircle2
 } from 'lucide-react';
 
-const APP_VERSION = "1.1.0"; // Versión Incremental
+const APP_VERSION = "1.1.1"; 
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>('DASHBOARD');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isSyncing, setIsSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState<'IDLE' | 'SYNCING' | 'UPDATED' | 'ERROR'>('IDLE');
 
-  // Estados
-  const [schoolSettings, setSchoolSettings] = useState<SchoolSettings>(() => {
-    const saved = localStorage.getItem('schoolSettings');
-    return saved ? JSON.parse(saved) : {
-      name: 'Pro-Manager Academia',
-      nit: '900.123.456-7',
-      address: 'Calle Deportiva 123, Ciudad',
-      phone: '(+57) 300 123 4567',
-      email: 'contacto@promanager.com'
-    };
-  });
+  // Función segura para cargar de localStorage
+  const getSafeStorage = (key: string, defaultValue: string) => {
+    try {
+      const saved = localStorage.getItem(key);
+      return saved ? JSON.parse(saved) : JSON.parse(defaultValue);
+    } catch (e) {
+      console.error(`Error cargando ${key}:`, e);
+      return JSON.parse(defaultValue);
+    }
+  };
 
-  const [students, setStudents] = useState<Student[]>(() => JSON.parse(localStorage.getItem('students') || '[]'));
-  const [teachers, setTeachers] = useState<Teacher[]>(() => JSON.parse(localStorage.getItem('teachers') || '[]'));
-  const [payments, setPayments] = useState<Payment[]>(() => JSON.parse(localStorage.getItem('payments') || '[]'));
-  const [cashFlow, setCashFlow] = useState<CashTransaction[]>(() => JSON.parse(localStorage.getItem('cashFlow') || '[]'));
-  const [squads, setSquads] = useState<MatchSquad[]>(() => JSON.parse(localStorage.getItem('squads') || '[]'));
-  const [users, setUsers] = useState<User[]>(() => JSON.parse(localStorage.getItem('users') || '[{"id":"1","username":"admin","role":"ADMIN","updatedAt":0}]'));
+  // Estados con carga segura
+  const [schoolSettings, setSchoolSettings] = useState<SchoolSettings>(() => 
+    getSafeStorage('schoolSettings', '{"name":"Pro-Manager Academia","nit":"900.123.456-7","address":"Calle Deportiva 123","phone":"(+57) 300 123 4567","email":"contacto@promanager.com"}')
+  );
+  const [students, setStudents] = useState<Student[]>(() => getSafeStorage('students', '[]'));
+  const [teachers, setTeachers] = useState<Teacher[]>(() => getSafeStorage('teachers', '[]'));
+  const [payments, setPayments] = useState<Payment[]>(() => getSafeStorage('payments', '[]'));
+  const [cashFlow, setCashFlow] = useState<CashTransaction[]>(() => getSafeStorage('cashFlow', '[]'));
+  const [squads, setSquads] = useState<MatchSquad[]>(() => getSafeStorage('squads', '[]'));
+  const [users, setUsers] = useState<User[]>(() => getSafeStorage('users', '[{"id":"1","username":"admin","role":"ADMIN","updatedAt":0}]'));
 
-  // Sincronización automática al abrir la aplicación
+  // Sincronización automática
   const performIncrementalSync = useCallback(async () => {
     if (!schoolSettings.googleDriveLinked) return;
     
@@ -73,13 +75,12 @@ const App: React.FC = () => {
     try {
       const remoteData = await fetchDriveData();
       if (!remoteData) {
-        // Si no hay datos en la nube, subimos los locales
         await handlePushToCloud();
         setSyncStatus('UPDATED');
         return;
       }
 
-      // Fusión incremental
+      // Fusión incremental basada en updatedAt
       const mergedStudents = mergeDataLists(students, remoteData.students || []);
       const mergedTeachers = mergeDataLists(teachers, remoteData.teachers || []);
       const mergedPayments = mergeDataLists(payments, remoteData.payments || []);
@@ -87,7 +88,6 @@ const App: React.FC = () => {
       const mergedSquads = mergeDataLists(squads, remoteData.squads || []);
       const mergedUsers = mergeDataLists(users, remoteData.users || []);
 
-      // Actualizar estados locales
       setStudents(mergedStudents);
       setTeachers(mergedTeachers);
       setPayments(mergedPayments);
@@ -95,7 +95,6 @@ const App: React.FC = () => {
       setSquads(mergedSquads);
       setUsers(mergedUsers);
 
-      // Guardar de vuelta a la nube los datos fusionados (Paz y Salvo mutuo)
       const allDataMerged = {
         students: mergedStudents,
         teachers: mergedTeachers,
@@ -115,14 +114,13 @@ const App: React.FC = () => {
     }
   }, [schoolSettings.googleDriveLinked, students, teachers, payments, cashFlow, squads, users]);
 
-  // Ejecutar sync al iniciar sesión
   useEffect(() => {
     if (currentUser) {
       performIncrementalSync();
     }
   }, [currentUser]);
 
-  // Guardado local persistente con marcas de tiempo automáticas
+  // Guardado local persistente
   useEffect(() => { localStorage.setItem('schoolSettings', JSON.stringify(schoolSettings)); }, [schoolSettings]);
   useEffect(() => { localStorage.setItem('students', JSON.stringify(students)); }, [students]);
   useEffect(() => { localStorage.setItem('teachers', JSON.stringify(teachers)); }, [teachers]);
@@ -132,22 +130,18 @@ const App: React.FC = () => {
   useEffect(() => { localStorage.setItem('users', JSON.stringify(users)); }, [users]);
 
   const handlePushToCloud = async () => {
-    setIsSyncing(true);
     setSyncStatus('SYNCING');
     const allData = { schoolSettings, students, teachers, payments, cashFlow, squads, users, timestamp: Date.now() };
     await saveDriveData(allData);
     setSchoolSettings({ ...schoolSettings, lastCloudSync: new Date().toISOString() });
-    setIsSyncing(false);
     setSyncStatus('UPDATED');
     setTimeout(() => setSyncStatus('IDLE'), 3000);
     return true;
   };
 
   const wrapUpdate = (setter: any) => (val: any) => {
-    // Si val es una función (como en setStudents(prev => [...prev, new])), la ejecutamos primero
     setter((prev: any) => {
       const next = typeof val === 'function' ? val(prev) : val;
-      // Si es un array de objetos, nos aseguramos que los nuevos tengan updatedAt
       if (Array.isArray(next)) {
         return next.map(item => ({
           ...item,
