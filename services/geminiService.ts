@@ -2,7 +2,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 export async function generateTrainingProgram(category: string, focus: string) {
-  // Always create a new GoogleGenAI instance right before making an API call to ensure it uses the current process.env.API_KEY
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
@@ -33,11 +32,10 @@ export async function generateTrainingProgram(category: string, focus: string) {
     }
   });
 
-  return JSON.parse(response.text);
+  return JSON.parse(response.text || '{"sessions":[]}');
 }
 
 export async function analyzeFinancialState(transactions: any[]) {
-  // Always create a new GoogleGenAI instance right before making an API call to ensure it uses the current process.env.API_KEY
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const summary = JSON.stringify(transactions);
   const response = await ai.models.generateContent({
