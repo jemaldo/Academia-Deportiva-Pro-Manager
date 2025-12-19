@@ -1,7 +1,12 @@
 
 {
+  "version": 2,
   "cleanUrls": true,
+  "trailingSlash": false,
+  "outputDirectory": ".",
   "rewrites": [
+    { "source": "/sw.js", "destination": "/sw.js" },
+    { "source": "/manifest.json", "destination": "/manifest.json" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [

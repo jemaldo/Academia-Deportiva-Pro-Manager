@@ -75,8 +75,10 @@ const StudentManager: React.FC<Props> = ({ students, setStudents, payments, setP
     const weight = Number(formData.get('weight'));
     const height = Number(formData.get('height'));
 
+    // Added updatedAt property to satisfy BaseEntity interface
     const newStudent: Student = {
       id: selectedStudent?.id || Date.now().toString(),
+      updatedAt: Date.now(),
       fullName: fullName,
       dni: dni,
       birthDate: birthDate,
@@ -120,12 +122,14 @@ const StudentManager: React.FC<Props> = ({ students, setStudents, payments, setP
 
     try {
       const data = await parseExcelFile(file);
+      // Added updatedAt property to each imported student
       const importedStudents: Student[] = data.map((row: any) => {
         const weight = Number(row.Peso || 0);
         const height = Number(row.Talla || 0);
         const bDay = row.FechaNacimiento || "";
         return {
           id: Date.now().toString() + Math.random(),
+          updatedAt: Date.now(),
           fullName: row.NombreCompleto || "Sin nombre",
           dni: row.DNI || "",
           birthDate: bDay,
@@ -168,8 +172,10 @@ const StudentManager: React.FC<Props> = ({ students, setStudents, payments, setP
   const handlePayment = (student: Student) => {
     const amount = prompt(`Monto del pago de mensualidad para ${student.fullName}:`, "50000");
     if (amount && !isNaN(Number(amount))) {
+      // Added updatedAt property to satisfy BaseEntity interface
       const newPayment: Payment = {
         id: Date.now().toString(),
+        updatedAt: Date.now(),
         date: new Date().toISOString().split('T')[0],
         amount: Number(amount),
         type: 'STUDENT_MONTHLY',
@@ -179,7 +185,7 @@ const StudentManager: React.FC<Props> = ({ students, setStudents, payments, setP
         status: 'PAID'
       };
       setPayments([...payments, newPayment]);
-      setStudents(students.map(s => s.id === student.id ? { ...s, isPaidUp: true } : s));
+      setStudents(students.map(s => s.id === student.id ? { ...s, isPaidUp: true, updatedAt: Date.now() } : s));
       alert("Pago registrado con éxito");
       setViewingReceipt(newPayment);
     }

@@ -7,8 +7,12 @@ export interface ParentInfo {
   address: string;
 }
 
-export interface Student {
+export interface BaseEntity {
   id: string;
+  updatedAt: number; // Marca de tiempo para conciliación
+}
+
+export interface Student extends BaseEntity {
   fullName: string;
   dni: string;
   birthDate: string;
@@ -31,8 +35,7 @@ export interface Student {
   isPaidUp: boolean; 
 }
 
-export interface Teacher {
-  id: string;
+export interface Teacher extends BaseEntity {
   firstName: string;
   lastName: string;
   category: string;
@@ -47,8 +50,7 @@ export interface Teacher {
   resumeUrl?: string; 
 }
 
-export interface Payment {
-  id: string;
+export interface Payment extends BaseEntity {
   date: string;
   amount: number;
   type: 'STUDENT_MONTHLY' | 'TEACHER_PAYROLL' | 'EXPENSE' | 'INCOME';
@@ -58,8 +60,7 @@ export interface Payment {
   status: 'PAID' | 'PENDING';
 }
 
-export interface CashTransaction {
-  id: string;
+export interface CashTransaction extends BaseEntity {
   date: string;
   type: 'INCOME' | 'OUTCOME';
   amount: number;
@@ -74,16 +75,14 @@ export interface SquadPlayer {
   isStarter: boolean;
 }
 
-export interface MatchSquad {
-  id: string;
+export interface MatchSquad extends BaseEntity {
   date: string;
   opponent: string;
   category: string;
   players: SquadPlayer[];
 }
 
-export interface User {
-  id: string;
+export interface User extends BaseEntity {
   username: string;
   role: 'ADMIN' | 'COACH' | 'SECRETARY';
 }
@@ -95,10 +94,9 @@ export interface SchoolSettings {
   phone: string;
   email: string;
   logo?: string;
-  // Cloud Sync Settings
   googleDriveLinked?: boolean;
   lastCloudSync?: string;
-  googleAccessToken?: string;
+  clientId?: string; // Para configuración real de Google
 }
 
 export type AppView = 'DASHBOARD' | 'STUDENTS' | 'TEACHERS' | 'FINANCE' | 'MATCHES' | 'TRAINING' | 'USERS' | 'REPORTS';

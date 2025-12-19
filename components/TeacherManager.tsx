@@ -57,8 +57,10 @@ const TeacherManager: React.FC<Props> = ({ teachers, setTeachers, payments, setP
   const handleSaveTeacher = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    // Added updatedAt property to satisfy BaseEntity interface
     const newTeacher: Teacher = {
       id: selectedTeacher?.id || Date.now().toString(),
+      updatedAt: Date.now(),
       firstName: formData.get('firstName') as string,
       lastName: formData.get('lastName') as string,
       category: formData.get('category') as string,
@@ -101,8 +103,10 @@ const TeacherManager: React.FC<Props> = ({ teachers, setTeachers, payments, setP
 
     try {
       const data = await parseExcelFile(file);
+      // Added updatedAt property to each imported teacher
       const importedTeachers: Teacher[] = data.map((row: any) => ({
         id: Date.now().toString() + Math.random(),
+        updatedAt: Date.now(),
         firstName: row.Nombres || "Sin nombre",
         lastName: row.Apellidos || "",
         category: row.Categoria || CATEGORIES[0],
@@ -134,8 +138,10 @@ const TeacherManager: React.FC<Props> = ({ teachers, setTeachers, payments, setP
   const handlePayroll = (teacher: Teacher) => {
     const amount = prompt(`Monto de nómina para ${teacher.firstName} ${teacher.lastName}:`, "1200000");
     if (amount && !isNaN(Number(amount))) {
+      // Added updatedAt property to satisfy BaseEntity interface
       const newPayment: Payment = {
         id: Date.now().toString(),
+        updatedAt: Date.now(),
         date: new Date().toISOString().split('T')[0],
         amount: Number(amount),
         type: 'TEACHER_PAYROLL',

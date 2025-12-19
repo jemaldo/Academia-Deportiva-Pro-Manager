@@ -1,12 +1,12 @@
 
 {
   "name": "academia-deportiva-pro-manager",
-  "version": "1.0.0",
-  "description": "Sistema integral de gestión para academias deportivas",
+  "version": "1.1.0",
+  "description": "Sistema integral de gestión para academias deportivas con sincronización incremental",
   "main": "index.tsx",
   "scripts": {
-    "start": "serve .",
-    "build": "echo 'No build step required'"
+    "build": "echo 'No build step required'",
+    "start": "serve ."
   },
   "keywords": [],
   "author": "",
