@@ -29,7 +29,7 @@ import {
   CloudLightning, 
   RefreshCw, 
   AlertCircle, 
-  CloudCheck, 
+  Cloud, 
   CloudUpload,
   Save,
   TriangleAlert,
@@ -213,7 +213,7 @@ const App: React.FC = () => {
                <div className="flex items-center gap-2">
                  {syncStatus === 'SYNCING' && <div className="text-blue-600 font-bold text-[10px] bg-blue-50 px-3 py-1.5 rounded-full border border-blue-200"><RefreshCw className="w-3 h-3 animate-spin inline mr-1" /> SINCRONIZANDO...</div>}
                  {syncStatus === 'UPDATED' && <div className="text-emerald-600 font-bold text-[10px] bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200"><CheckCircle2 className="w-3 h-3 inline mr-1" /> ACTUALIZADO</div>}
-                 {syncStatus === 'IDLE' && <button onClick={performIncrementalSync} className="text-slate-400 hover:text-blue-600"><CloudCheck className="w-5 h-5" /></button>}
+                 {syncStatus === 'IDLE' && <button onClick={performIncrementalSync} className="text-slate-400 hover:text-blue-600"><Cloud className="w-5 h-5" /></button>}
                </div>
              )}
           </div>
