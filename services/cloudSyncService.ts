@@ -25,8 +25,8 @@ export function mergeDataLists<T extends BaseEntity>(local: T[], remote: T[]): T
  * Simula la interacción con la API de Google Drive
  */
 export async function fetchDriveData(): Promise<any | null> {
-  // En una implementación real, aquí usaríamos gapi.client.drive.files.get
-  // Simulamos una respuesta tras 1 segundo
+  // En una implementación real con gapi:
+  // const response = await gapi.client.drive.files.get({...});
   await new Promise(r => setTimeout(r, 800));
   const savedCloudData = localStorage.getItem('__mock_drive_file__');
   return savedCloudData ? JSON.parse(savedCloudData) : null;
@@ -35,4 +35,14 @@ export async function fetchDriveData(): Promise<any | null> {
 export async function saveDriveData(data: any): Promise<void> {
   await new Promise(r => setTimeout(r, 1000));
   localStorage.setItem('__mock_drive_file__', JSON.stringify(data));
+}
+
+/**
+ * Limpia la sesión actual para permitir cambiar de cuenta de correo
+ */
+export function logoutFromDrive(): void {
+  // En una implementación real:
+  // google.accounts.oauth2.revoke(accessToken);
+  localStorage.removeItem('google_access_token');
+  console.log("Sesión de Google Drive cerrada localmente");
 }

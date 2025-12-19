@@ -1,6 +1,7 @@
 
 import React, { useRef } from 'react';
 import { User, SchoolSettings } from '../types';
+import { logoutFromDrive } from '../services/cloudSyncService';
 import { 
   Shield, 
   UserPlus, 
@@ -19,7 +20,9 @@ import {
   History,
   Lock,
   Server,
-  Share2
+  Share2,
+  RefreshCw,
+  LogOut
 } from 'lucide-react';
 
 interface Props {
@@ -48,7 +51,7 @@ const UserSettings: React.FC<Props> = ({
     const username = prompt("Nombre de usuario:");
     const role = prompt("Rol (ADMIN, COACH, SECRETARY):") as any;
     if (username && role) {
-      setUsers([...users, { id: Date.now().toString(), username, role }]);
+      setUsers([...users, { id: Date.now().toString(), username, role, updatedAt: Date.now() }]);
     }
   };
 
@@ -76,6 +79,14 @@ const UserSettings: React.FC<Props> = ({
       if (confirm("¿Desvincular Google Drive? Se detendrá la sincronización automática entre dispositivos.")) {
         setSchoolSettings({ ...schoolSettings, googleDriveLinked: false });
       }
+    }
+  };
+
+  const handleChangeAccount = () => {
+    if (confirm("Para cambiar la cuenta de correo, el sistema cerrará la vinculación actual. Deberás volver a iniciar sesión con la nueva cuenta. ¿Continuar?")) {
+      logoutFromDrive();
+      setSchoolSettings({ ...schoolSettings, googleDriveLinked: false });
+      alert("Sesión cerrada. Ahora puedes hacer clic en 'Vincular Google Drive' para elegir una cuenta diferente.");
     }
   };
 
@@ -181,22 +192,33 @@ const UserSettings: React.FC<Props> = ({
               Activa esta opción para compartir los datos con otros miembros de tu equipo usando una cuenta de Google compartida.
             </p>
             
-            <button 
-              onClick={handleToggleGoogleDrive}
-              className={`w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition shadow-lg ${schoolSettings.googleDriveLinked ? 'bg-red-50 text-red-600 border border-red-100 hover:bg-red-100' : 'bg-slate-900 text-white hover:bg-black'}`}
-            >
-              {schoolSettings.googleDriveLinked ? (
-                <>DETENER SINCRONIZACIÓN</>
-              ) : (
-                <><Chrome className="w-4 h-4" /> VINCULAR GOOGLE DRIVE</>
+            <div className="space-y-3 relative z-10">
+              <button 
+                onClick={handleToggleGoogleDrive}
+                className={`w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition shadow-lg ${schoolSettings.googleDriveLinked ? 'bg-slate-100 text-slate-400 border border-slate-200 hover:bg-slate-200' : 'bg-slate-900 text-white hover:bg-black'}`}
+              >
+                {schoolSettings.googleDriveLinked ? (
+                  <>DESVINCULAR ACTUAL</>
+                ) : (
+                  <><Chrome className="w-4 h-4" /> VINCULAR GOOGLE DRIVE</>
+                )}
+              </button>
+
+              {schoolSettings.googleDriveLinked && (
+                <button 
+                  onClick={handleChangeAccount}
+                  className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-100 shadow-sm"
+                >
+                  <RefreshCw className="w-4 h-4" /> CAMBIAR CUENTA DE CORREO
+                </button>
               )}
-            </button>
+            </div>
 
             {schoolSettings.googleDriveLinked && (
               <div className="mt-8 space-y-4 pt-6 border-t border-slate-100">
                 <div className="flex justify-between items-center text-[10px]">
                   <span className="font-black text-slate-400 uppercase tracking-widest">Estado Nube</span>
-                  <span className="flex items-center gap-1.5 text-emerald-600 font-black"><Check className="w-3 h-3" /> ACTIVO</span>
+                  <span className="flex items-center gap-1.5 text-emerald-600 font-black"><Check className="w-3 h-3" /> CONECTADO</span>
                 </div>
                 <div className="flex justify-between items-center text-[10px]">
                   <span className="font-black text-slate-400 uppercase tracking-widest">Último Envío</span>
